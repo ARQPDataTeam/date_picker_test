@@ -1,0 +1,11 @@
+pandas
+psycopg2
+sqlalchemy
+openpyxl
+numpy
+xlrd
+dash
+azure-identity
+azure-storage-blob
+azure-keyvault-secrets
+python-dotenv
