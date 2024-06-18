@@ -27,7 +27,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/bernski/Dash:latest
+          tags: ghcr.io/bernski/display_dash_app:latest
 
       - name: Logout of GitHub Container Registry
         run: docker logout ghcr.io
