@@ -14,6 +14,7 @@ from azure.keyvault.secrets import SecretClient
 # initialize the dash app as 'app'
 app = Dash(__name__)
 
+# set the key vault path
 KEY_VAULT_URL = "https://fsdh-swapit-dw1-poc-kv.vault.azure.net/"
 error_occur = False
 
