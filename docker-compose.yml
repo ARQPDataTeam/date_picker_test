@@ -4,7 +4,7 @@ version: '3.8'
 services:
   web:
     build: .
-    image: ghcr.io/bernski/display_dash_app:latest
+    image: ghcr.io/arqpdatateam/display_dash_app:latest
     container_name: display_dash_app
     ports:
       - "80:80"

@@ -14,6 +14,7 @@ from azure.keyvault.secrets import SecretClient
 # initialize the dash app as 'app'
 app = Dash(__name__)
 
+# set the key vault path
 KEY_VAULT_URL = "https://fsdh-swapit-dw1-poc-kv.vault.azure.net/"
 error_occur = False
 
@@ -42,7 +43,7 @@ sql_query="""
     select datetime, ws_u, ws_v 
     from hwy__csat_v0
     order by datetime
-    limit 100000;
+    limit 10000;
     """
 
 # create the dataframe from the sql query
