@@ -10,27 +10,40 @@ from dash.dependencies import Input, Output
 from plotly.subplots import make_subplots
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
+import os
+from dotenv import load_dotenv 
 
 # initialize the dash app as 'app'
 app = Dash(__name__)
 
-# set the key vault path
-KEY_VAULT_URL = "https://fsdh-swapit-dw1-poc-kv.vault.azure.net/"
-error_occur = False
-
+# set a try except clause to grab the online credentials keys and if not, grab them locally as environment variables
 try:
-    # Retrieve the secrets containing DB connection details
-    credential = DefaultAzureCredential()
-    secret_client = SecretClient(vault_url=KEY_VAULT_URL, credential=credential)
+    # set the key vault path
+    KEY_VAULT_URL = "https://fsdh-swapit-dw1-poc-kv.vault.azure.net/"
+    error_occur = False
 
-    # Retrieve the secrets containing DB connection details
-    DB_HOST = secret_client.get_secret("datahub-psql-server").value
-    DB_NAME = secret_client.get_secret("datahub-psql-db_name").value
-    DB_USER = secret_client.get_secret("datahub-psql-user").value
-    DB_PASS = secret_client.get_secret("datahub-psql-password").value
-except Exception as e:
-    error_occur = True
-    print(f"An error occurred: {e}")
+    try:
+        # Retrieve the secrets containing DB connection details
+        credential = DefaultAzureCredential()
+        secret_client = SecretClient(vault_url=KEY_VAULT_URL, credential=credential)
+
+        # Retrieve the secrets containing DB connection details
+        DB_HOST = secret_client.get_secret("datahub-psql-server").value
+        DB_NAME = secret_client.get_secret("datahub-psql-db_name").value
+        DB_USER = secret_client.get_secret("datahub-psql-user").value
+        DB_PASS = secret_client.get_secret("datahub-psql-password").value
+    except Exception as e:
+        error_occur = True
+        print(f"An error occurred: {e}")
+
+except:
+    # load the .env file using the dotenv module
+    load_dotenv() # default is relative local directory 
+    env_path='.env'
+    DB_HOST = os.getenv('DATAHUB_PSQL_SERVER')
+    DB_NAME = os.getenv('DATAHUB_PSQL_DBNAME')
+    DB_USER = os.getenv('DATAHUB_PSQL_USER')
+    DB_PASS = os.getenv('DATAHUB_PSQL_PWD')
 
 # set the sql engine string
 sql_engine_string=('postgresql://{}:{}@{}/{}').format(DB_USER,DB_PASS,DB_HOST,DB_NAME)
