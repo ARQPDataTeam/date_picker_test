@@ -49,6 +49,7 @@ except Exception as e:
 
 # set the sql engine string
 sql_engine_string=('postgresql://{}:{}@{}/{}').format(DB_USER,DB_PASS,DB_HOST,DB_NAME)
+print ('sql engine string: ',sql_engine_string)
 sql_engine=create_engine(sql_engine_string)
 
 
@@ -58,7 +59,7 @@ sql_query="""
     select datetime, ws_u, ws_v 
     from hwy__csat_v0
     order by datetime
-    limit 10000;
+    limit 1000000;
     """
 
 # create the dataframe from the sql query
@@ -69,7 +70,7 @@ met_output_df.index=pd.to_datetime(met_output_df.index)
 beginning_date=met_output_df.index[0]
 ending_date=met_output_df.index[-1]
 today=dt.today().strftime('%Y-%m-%d')
-
+print(beginning_date, ending_date)
 # use specs parameter in make_subplots function
 # to create secondary y-axis
 
@@ -77,6 +78,7 @@ today=dt.today().strftime('%Y-%m-%d')
 # plot a scatter chart by specifying the x and y values
 # Use add_trace function to specify secondary_y axes.
 def create_figure(met_output_df):
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
     fig.add_trace(
         go.Scatter(x=met_output_df.index, y=met_output_df['ws_u'], name="U WInd Speed"),
         secondary_y=False)
@@ -100,7 +102,7 @@ def create_figure(met_output_df):
         x=0.01
     )   
     )
-    return create_figure
+    return fig
 
 # set up the app layout
 app.layout = html.Div(children=
@@ -113,7 +115,7 @@ app.layout = html.Div(children=
                         min_date_allowed=beginning_date,
                         max_date_allowed=ending_date
                     ),
-                    dcc.Graph(id='hwy401-csat-plot',figure={}),
+                    dcc.Graph(id='hwy401-csat-plot',figure=create_figure(met_output_df)),
                     
                     ] 
                     )
@@ -131,13 +133,13 @@ app.layout = html.Div(children=
 
 def update_output(start_date, end_date):
     print (start_date, end_date)
-    if not start_date:
-        start_date=met_output_df.index[0]
-    if not end_date:
-        end_date=met_output_df.index[-1]
-    
-    fig['layout']['xaxis']={'range':(start_date,end_date)}
-    return fig
+    if not start_date or not end_date:
+        raise PreventUpdate
+    else:
+        output_selected_df = met_output_df.loc[
+            (met_output_df.index >= start_date) & (met_output_df.index <= end_date), :
+        ]
+        return create_figure(output_selected_df)
 
     # string_prefix = 'You have selected: '
     # if start_date is not None:
