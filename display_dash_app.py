@@ -22,21 +22,23 @@ try:
     KEY_VAULT_URL = "https://fsdh-swapit-dw1-poc-kv.vault.azure.net/"
     error_occur = False
 
-    try:
-        # Retrieve the secrets containing DB connection details
-        credential = DefaultAzureCredential()
-        secret_client = SecretClient(vault_url=KEY_VAULT_URL, credential=credential)
+    # Retrieve the secrets containing DB connection details
+    credential = DefaultAzureCredential()
+    secret_client = SecretClient(vault_url=KEY_VAULT_URL, credential=credential)
+    print ('Credentials loaded from FSDH')
 
-        # Retrieve the secrets containing DB connection details
-        DB_HOST = secret_client.get_secret("datahub-psql-server").value
-        DB_NAME = secret_client.get_secret("datahub-psql-db_name").value
-        DB_USER = secret_client.get_secret("datahub-psql-user").value
-        DB_PASS = secret_client.get_secret("datahub-psql-password").value
-    except Exception as e:
-        error_occur = True
-        print(f"An error occurred: {e}")
+    # Retrieve the secrets containing DB connection details
+    DB_HOST = secret_client.get_secret("datahub-psql-server").value
+    DB_NAME = secret_client.get_secret("datahub-psql-db_name").value
+    DB_USER = secret_client.get_secret("datahub-psql-user").value
+    DB_PASS = secret_client.get_secret("datahub-psql-password").value
 
-except:
+except Exception as e:
+    # declare FSDH keys exception
+    error_occur = True
+    print(f"An error occurred: {e}")
+    print ('Loading local credentials')
+
     # load the .env file using the dotenv module
     load_dotenv() # default is relative local directory 
     env_path='.env'
