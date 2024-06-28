@@ -25,27 +25,27 @@ try:
     # Retrieve the secrets containing DB connection details
     credential = DefaultAzureCredential()
     secret_client = SecretClient(vault_url=KEY_VAULT_URL, credential=credential)
-    print ('Credentials loaded from FSDH')
 
     # Retrieve the secrets containing DB connection details
     DB_HOST = secret_client.get_secret("datahub-psql-server").value
-    DB_NAME = secret_client.get_secret("datahub-psql-db_name").value
+    DB_NAME = secret_client.get_secret("datahub-psql-dbname").value
     DB_USER = secret_client.get_secret("datahub-psql-user").value
     DB_PASS = secret_client.get_secret("datahub-psql-password").value
+    print ('Credentials loaded from FSDH')
 
 except Exception as e:
     # declare FSDH keys exception
     error_occur = True
     print(f"An error occurred: {e}")
-    print ('Loading local credentials')
 
-    # load the .env file using the dotenv module
+    # load the .env file using the dotenv module remove this when running a powershell script to confirue system environment vars
     load_dotenv() # default is relative local directory 
     env_path='.env'
     DB_HOST = os.getenv('DATAHUB_PSQL_SERVER')
     DB_NAME = os.getenv('DATAHUB_PSQL_DBNAME')
     DB_USER = os.getenv('DATAHUB_PSQL_USER')
     DB_PASS = os.getenv('DATAHUB_PSQL_PWD')
+    print ('Credentials loaded locally')
 
 # set the sql engine string
 sql_engine_string=('postgresql://{}:{}@{}/{}').format(DB_USER,DB_PASS,DB_HOST,DB_NAME)
@@ -56,11 +56,12 @@ sql_engine=create_engine(sql_engine_string)
 # sql query
 sql_query="""
     SET TIME ZONE 'GMT';
-    select datetime, ws_u, ws_v 
-    from hwy__csat_v0
-    order by datetime
-    limit 1000000;
-    """
+    SELECT DISTINCT ON (datetime) datetime, ws_u, ws_v FROM (
+        SELECT date_trunc('minute',datetime) AS datetime, ws_u AS u, ws_v AS v, ws_w AS w
+        FROM cru__csat_v0
+        WHERE ws_u IS NOT NULL
+        AND datetime >= '2024-03-01' AND datetime < '2024-03-01 01:00:00'
+    ) AS suqb;    """
 
 # create the dataframe from the sql query
 met_output_df=pd.read_sql_query(sql_query, con=sql_engine)
@@ -140,20 +141,6 @@ def update_output(start_date, end_date):
             (met_output_df.index >= start_date) & (met_output_df.index <= end_date), :
         ]
         return create_figure(output_selected_df)
-
-    # string_prefix = 'You have selected: '
-    # if start_date is not None:
-    #     start_date_object = dt.strptime(start_date, '%Y-%m-%d')
-    #     start_date_string = start_date_object.strftime('%Y-%m-%d')
-    #     string_prefix = string_prefix + 'Start Date: ' + start_date_string + ' | '
-    # if end_date is not None:
-    #     end_date_object = dt.strptime(end_date, '%Y-%m-%d')
-    #     end_date_string = end_date_object.strftime('%Y-%m-%d')
-    #     string_prefix = string_prefix + 'End Date: ' + end_date_string
-    # if len(string_prefix) == len('You have selected: '):
-    #     return 'Select a date to see it displayed here'
-    # else:
-    #     return string_prefix
 
 
 if __name__=='__main__':
