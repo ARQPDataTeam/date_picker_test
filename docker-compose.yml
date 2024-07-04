@@ -1,10 +1,8 @@
 # docker-compose.yml
-version: '3.8'
-
 services:
-  web:
-    build: .
+  webapp:
     image: ghcr.io/arqpdatateam/display_dash_app:latest
     container_name: display_dash_app
+    restart: always
     ports:
-      - "80:8050"
+      - 8050:8050
