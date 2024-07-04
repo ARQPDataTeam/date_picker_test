@@ -8,6 +8,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-EXPOSE 80
+EXPOSE 8050
 
 CMD ["python", "./display_dash_app.py"]
