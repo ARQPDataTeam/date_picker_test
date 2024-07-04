@@ -55,16 +55,18 @@ sql_engine=create_engine(sql_engine_string)
 
 # sql query
 sql_query="""
-    SET TIME ZONE 'GMT';
-    SELECT DISTINCT ON (datetime) datetime, ws_u, ws_v FROM (
-        SELECT date_trunc('minute',datetime) AS datetime, ws_u AS u, ws_v AS v, ws_w AS w
-        FROM cru__csat_v0
-        WHERE ws_u IS NOT NULL
-        AND datetime >= '2024-03-01' AND datetime < '2024-03-01 01:00:00'
-    ) AS suqb;    """
+SET TIME ZONE 'GMT';
+SELECT DISTINCT ON (datetime) * FROM (
+	SELECT date_trunc('minute',datetime) AS datetime, ws_u AS u, ws_v AS v, vtempa AS vtemp
+	FROM cru__csat_v0
+	WHERE ws_u IS NOT NULL
+	AND datetime >= '2024-03-01' AND datetime < '2024-03-01 01:00:00'
+) AS csat
+ORDER BY datetime;    """
 
 # create the dataframe from the sql query
 met_output_df=pd.read_sql_query(sql_query, con=sql_engine)
+print (met_output_df)
 
 met_output_df.set_index('datetime', inplace=True)
 met_output_df.index=pd.to_datetime(met_output_df.index)
@@ -81,12 +83,12 @@ print(beginning_date, ending_date)
 def create_figure(met_output_df):
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     fig.add_trace(
-        go.Scatter(x=met_output_df.index, y=met_output_df['ws_u'], name="U WInd Speed"),
+        go.Scatter(x=met_output_df.index, y=met_output_df['u'], name="U WInd Speed"),
         secondary_y=False)
     
     # Use add_trace function and specify secondary_y axes = True.
     fig.add_trace(
-        go.Scatter(x=met_output_df.index, y=met_output_df['ws_v'], name="V Wind Speed"),
+        go.Scatter(x=met_output_df.index, y=met_output_df['v'], name="V Wind Speed"),
         secondary_y=True,)
 
     # set axis titles
