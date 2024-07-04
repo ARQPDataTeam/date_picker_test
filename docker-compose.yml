@@ -7,4 +7,4 @@ services:
     image: ghcr.io/arqpdatateam/display_dash_app:latest
     container_name: display_dash_app
     ports:
-      - "80:80"
+      - "80:8050"

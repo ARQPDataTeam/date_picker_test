@@ -1,5 +1,4 @@
-import dash
-from dash import Dash, html, dcc, callback 
+from dash import Dash, html, dcc 
 from dash.exceptions import PreventUpdate
 import plotly.express as px
 import plotly.graph_objects as go
@@ -14,8 +13,8 @@ from azure.keyvault.secrets import SecretClient
 import os
 from dotenv import load_dotenv 
 
-# register this as a page in the app
-dash.register_page(__name__)
+# initialize the dash app as 'app'
+app = Dash(__name__)
 
 # set a try except clause to grab the online credentials keys and if not, grab them locally as environment variables
 try:
@@ -45,7 +44,7 @@ except Exception as e:
     DB_HOST = os.getenv('DATAHUB_PSQL_SERVER')
     DB_NAME = os.getenv('DATAHUB_PSQL_DBNAME')
     DB_USER = os.getenv('DATAHUB_PSQL_USER')
-    DB_PASS = os.getenv('DATAHUB_PSQL_PWD')
+    DB_PASS = os.getenv('DATAHUB_PSQL_PASSWORD')
     print ('Credentials loaded locally')
 
 # set the sql engine string
@@ -136,7 +135,7 @@ layout = html.Div(children=
 #     Input('date-picker', 'end_date')],
 #     [State('submit_button', 'n_clicks')])
 
-@callback(
+@app.callback(
     Output('cru-csat-plot', 'figure'),
     Input('my-date-picker-range', 'start_date'),
     Input('my-date-picker-range', 'end_date'))
@@ -152,5 +151,5 @@ def update_output(start_date, end_date):
         return create_figure(output_selected_df)
 
 
-# if __name__=='__main__':
-#     app.run(debug=True)
+if __name__=='__main__':
+    app.run(debug=True)
