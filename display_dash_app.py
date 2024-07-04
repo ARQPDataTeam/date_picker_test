@@ -130,4 +130,4 @@ def update_output(start_date, end_date):
 
 
 if __name__=='__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')
