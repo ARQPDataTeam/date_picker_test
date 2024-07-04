@@ -48,7 +48,7 @@ except Exception as e:
     print ('Credentials loaded locally')
 
 # set the sql engine string
-sql_engine_string=('postgresql://{}:{}@{}/{}').format(DB_USER,DB_PASS,DB_HOST,DB_NAME)
+sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(DB_USER,DB_PASS,DB_HOST,DB_NAME)
 print ('sql engine string: ',sql_engine_string)
 sql_engine=create_engine(sql_engine_string)
 
