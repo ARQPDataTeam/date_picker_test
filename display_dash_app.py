@@ -48,7 +48,7 @@ except Exception as e:
     print ('Credentials loaded locally')
 
 # set the sql engine string
-sql_engine_string=('postgresql://{}:{}@{}/{}').format(DB_USER,DB_PASS,DB_HOST,DB_NAME)
+sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(DB_USER,DB_PASS,DB_HOST,DB_NAME)
 print ('sql engine string: ',sql_engine_string)
 sql_engine=create_engine(sql_engine_string)
 
@@ -60,15 +60,13 @@ SELECT DISTINCT ON (datetime) * FROM (
 	SELECT date_trunc('minute',datetime) AS datetime, ws_u AS u, ws_v AS v, vtempa AS vtemp
 	FROM cru__csat_v0
 	WHERE ws_u IS NOT NULL
-	AND datetime >= '2024-03-01' AND datetime < '2024-03-01 01:00:00'
+	AND datetime >= '2024-03-01' AND datetime < '2024-03-02 00:00:00'
 ) AS csat
-ORDER BY datetime;
-"""
+ORDER BY datetime;    """
 
 # create the dataframe from the sql query
 csat_output_df=pd.read_sql_query(sql_query, con=sql_engine)
-
-# print (csat_output_df)
+print (csat_output_df)
 
 csat_output_df.set_index('datetime', inplace=True)
 csat_output_df.index=pd.to_datetime(csat_output_df.index)
@@ -100,7 +98,7 @@ def create_figure(csat_output_df):
     # set axis titles
     fig.update_layout(
         template='simple_white',
-        title='CRU CSAT Data',
+        title='HWY 401 CSAT Data',
         xaxis_title="Date",
         yaxis_title="Winds (m/s)",
         yaxis2_title="Virt Temp (C)",
@@ -114,10 +112,10 @@ def create_figure(csat_output_df):
     return fig
 
 # set up the app layout
-layout = html.Div(children=
+app.layout = html.Div(children=
                     [
-                    html.H1(children=['SWAPIT Cruiser CSAT Dashboard']),
-                    html.Div(children=['CSAT Met plot display with date picker']),
+                    html.H1(children=['SWAPIT HWY 401 Met Dashboard']),
+                    html.Div(children=['Met plot display with date picker']),
 
                     dcc.DatePickerRange(
                         id='my-date-picker-range',
