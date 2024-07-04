@@ -14,7 +14,9 @@ import os
 from dotenv import load_dotenv 
 
 # initialize the dash app as 'app'
-app = Dash(__name__)
+app = Dash(__name__,
+                requests_pathname_prefix="/webapp-SWAPIT/",
+                routes_pathname_prefix="/webapp-SWAPIT/")
 
 # set a try except clause to grab the online credentials keys and if not, grab them locally as environment variables
 # declare FSDH keys exception
