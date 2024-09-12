@@ -5,7 +5,9 @@ openpyxl
 numpy
 xlrd
 dash
+dash_bootstrap_components
 azure-identity
 azure-storage-blob
 azure-keyvault-secrets
 python-dotenv
+dash_leaflet

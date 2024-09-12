@@ -5,4 +5,4 @@ services:
     container_name: display_dash_app
     restart: always
     ports:
-      - 80:8050
+      - "80:8080"
