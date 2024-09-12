@@ -8,6 +8,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-EXPOSE 80
+EXPOSE 8080
 
-CMD ["python", "./display_dash_app.py"]
+CMD ["python", "./date_picker_test.py"]
