@@ -65,89 +65,69 @@ now=dt.today()
 start_date=(now-td(days=7)).strftime('%Y-%m-%d')
 end_date=now.strftime('%Y-%m-%d')
 
-def app_sql_setup(start_date, end_date):
-    # csat sql query
-    csat_sql_query=("""
-    SET TIME ZONE 'GMT';
-    SELECT DISTINCT ON (datetime) * FROM (
-        SELECT datetime, ws_u AS u, ws_v AS v, vtempa AS temp
-        FROM bor__csat_m_v0         
-        WHERE ws_u IS NOT NULL
-        AND datetime >= '{}' and datetime <='{}'
-    ) AS csat
-    ORDER BY datetime;
-    """).format(start_date,end_date)
 
-    # create the dataframes from the sql query
-    csat_output_df=pd.read_sql_query(csat_sql_query, con=sql_engine)
-    # set a datetime index
-    csat_output_df.set_index('datetime', inplace=True)
-    csat_output_df.index=pd.to_datetime(csat_output_df.index)
+csat_table='bor__csat_m_v0'
+csat_species_list='ws_u, ws_v, vtempa'
+csat_axis_list=[False, False, True]
+csat_plot_title='Borden CSAT'
+csat_y_title_1='Winds (m/s)'
+csat_y_title_2='Virt Temp (C)'
+csat_secondary_y_flag=True
 
-    # set plotting parameters
-    csat_output_df.loc['axis',:]=[False, False, True]
+pic_table='bor__g2311f_m_v0'
+pic_species_list='ch4, co2'
+pic_axis_list=[False, True]
+pic_plot_title='Borden Picarro'
+pic_y_title_1='CO2'
+pic_y_title_2='CH4'
+pic_secondary_y_flag=True
 
-    # plot a scatter chart by specifying the x and y values
-    # Use add_trace function to specify secondary_y axes.
-    def create_figure (df_index, df, plot_title, y_title_1, y_title_2, df_columns):
-        fig = make_subplots(specs=[[{"secondary_y": True}]])
-        for column in df_columns:
-            print (df_index, df.loc[:,column])
-            fig.add_trace(
-                go.Scatter(x=df_index, y=df[column], name=column),
-                secondary_y=df.loc['axis',column])
-        
-        # set axis titles
-        fig.update_layout(
-            template='simple_white',
-            title=plot_title,
-            xaxis_title="Date",
-            yaxis_title=y_title_1,
-            yaxis2_title=y_title_2,
-            legend=dict(
-            yanchor="top",
-            y=0.99,
-            xanchor="left",
-            x=0.01
-        )   
-        )
-        return fig
-
-    fig=create_figure(csat_output_df.index,csat_output_df,'Borden CSAT','Winds (m/s)','Virt Temp (C)',csat_output_df.columns)
-    return fig
-
-
-# run the sql function based on the start and end times
-csat_output_df=app_sql_setup(start_date, end_date)
+# set datetime parameters
+first_date=first_entry(csat_table)
+pic_first_date=first_entry(pic_table)
+now=dt.today()
+start_date=(now-td(days=7)).strftime('%Y-%m-%d')
+end_date=now.strftime('%Y-%m-%d')
 
 # set up the app layout
 app.layout = html.Div(children=
                     [
-                    html.H1(children=['Borden Dashboard']),
-                    html.Div(children=['Borden CSAT Display']),
-
+                    html.H1('BORDEN DASHBOARD', style={'textAlign': 'center'}),
+                    html.H3('Pick the desired date range.  This will apply to all plots on the page.'),
                     dcc.DatePickerRange(
-                        id='csat-date-picker',
-                        min_date_allowed='2024-01-01',
-                        max_date_allowed=end_date
+                        id='date-picker',
+                        min_date_allowed=first_date,
+                        max_date_allowed=end_date,
+                        display_format='YYYY-MM-DD'
                     ),
-                    dcc.Graph(id='csat_plot',figure=app_sql_setup(start_date, end_date))
+                    html.H2('Borden CSAT Display'),
+                    dcc.Graph(id='csat_plot',figure=fig_generator(start_date,end_date,csat_table,csat_species_list,csat_axis_list,csat_plot_title,csat_y_title_1,csat_secondary_y_flag,csat_y_title_2)),
+                    html.Br(),
+                    html.H2(children=['Borden Picarro Display']),
+
+                    # dcc.DatePickerRange(
+                    #     id='pic-date-picker',
+                    #     min_date_allowed=pic_first_date,
+                    #     max_date_allowed=end_date
+                    # ),
+                    dcc.Graph(id='pic_plot',figure=fig_generator(start_date,end_date,pic_table,pic_species_list,pic_axis_list,pic_plot_title,pic_y_title_1,pic_secondary_y_flag,pic_y_title_2))
                     ] 
                     )
 
 @app.callback(
     Output('csat_plot', 'figure'),
-    Input('csat-date-picker', 'start_date'),
-    Input('csat-date-picker', 'end_date'))
+    Output('pic_plot', 'figure'),
+    Input('date-picker', 'start_date'),
+    Input('date-picker', 'end_date'))
 
-def update_output(start_date, end_date):
-    print (start_date, end_date)
+def update_output(start_date,end_date):
     if not start_date or not end_date:
         raise PreventUpdate
     else:
-        csat_output_df=app_sql_setup(start_date, end_date)
-        return csat_output_df
-
+        print ('Updating plot')
+        csat_fig=fig_generator(start_date,end_date,csat_table,csat_species_list,csat_axis_list,csat_plot_title,csat_y_title_1,csat_secondary_y_flag,csat_y_title_2)
+        pic_fig=fig_generator(start_date,end_date,pic_table,pic_species_list,pic_axis_list,pic_plot_title,pic_y_title_1,pic_secondary_y_flag,pic_y_title_2)
+    return csat_fig,pic_fig
 
 if __name__=='__main__':
     app.run(debug=False, host='0.0.0.0', port=8080)

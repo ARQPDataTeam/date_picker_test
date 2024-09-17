@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 8080
 
-CMD ["python", "./date_picker_test.py"]
+CMD ["python", "./app.py"]
