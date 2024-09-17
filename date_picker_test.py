@@ -16,7 +16,10 @@ import os
 from dotenv import load_dotenv
 import numpy as np
 
+# local modules
 from credentials import sql_engine_string_generator
+from postgres_query import fig_generator
+from postgres_query import first_entry
 
 
 # initialize the dash app as 'app'
