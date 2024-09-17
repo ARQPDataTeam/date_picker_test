@@ -1,8 +1,8 @@
 # docker-compose.yml
 services:
   webapp:
-    image: ghcr.io/arqpdatateam/display_dash_app:latest
-    container_name: display_dash_app
+    image: ghcr.io/arqpdatateam/date_picker_test:latest
+    container_name: date_picker_test
     restart: always
     ports:
       - "80:8080"
