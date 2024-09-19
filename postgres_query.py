@@ -11,28 +11,37 @@ from plotly.subplots import make_subplots
 
 from credentials import sql_engine_string_generator
 
-# set the sql engine string
-sql_engine_string=sql_engine_string_generator('DATAHUB_PSQL_SERVER','DATAHUB_BORDEN_DBNAME','DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD')
-sql_engine=create_engine(sql_engine_string)
-conn = sql_engine.connect()
 
-def fig_generator(start_date,end_date,table,species_list,axis_list,plot_title,y_title_1,secondary_y_flag,y_title_2=None):
-    print ('Plotting data')
-    not_null_select=species_list.split(',')[0]
-    # csat sql query
-    csat_sql_query=("""
-    SET TIME ZONE 'GMT';
-    SELECT DISTINCT ON (datetime) * FROM (
-        SELECT datetime, {}
-        FROM {}         
-        WHERE {} IS NOT NULL
-        AND datetime >= '{}' and datetime <='{}'
-    ) AS csat
-    ORDER BY datetime;
-    """).format(species_list,table,not_null_select,start_date,end_date)
+def fig_generator(start_date,end_date,sql_query, database_name):
+    print ('Querying ',sql_query)
+    # set the sql engine string
+    sql_engine_string=sql_engine_string_generator('DATAHUB_PSQL_SERVER',database_name,'DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD')
+    sql_engine=create_engine(sql_engine_string)
+    conn = sql_engine.connect()
+
+    # set the path to the sql folder
+    sql_path='assets/sql_queries/'
+
+    # load the plotting properties
+    plotting_properties_df=pd.read_csv(sql_path+'plotting_inputs.txt', index_col=0, sep=';')
+    plot_title=plotting_properties_df.loc[sql_query,'plot_title']
+    y_title_1=plotting_properties_df.loc[sql_query,'y_title_1']
+    y_title_2=plotting_properties_df.loc[sql_query,'y_title_2']
+    axis_list=plotting_properties_df.loc[sql_query,'axis_list']
+    secondary_y_flag=plotting_properties_df.loc[sql_query,'secondary_y_flag']
+
+
+    # load the sql query
+    filename=sql_query+'.sql'
+    filepath=sql_path+filename
+    with open(filepath,'r') as f:
+        sql_query=f.read()
+
+    # sql query
+    sql_query=(sql_query).format(start_date,end_date)
 
     # create the dataframes from the sql query
-    output_df=pd.read_sql_query(csat_sql_query, con=sql_engine)
+    output_df=pd.read_sql_query(sql_query, con=sql_engine)
     # set a datetime index
     output_df.set_index('datetime', inplace=True)
     output_df.index=pd.to_datetime(output_df.index)
@@ -40,7 +49,7 @@ def fig_generator(start_date,end_date,table,species_list,axis_list,plot_title,y_
     # plot a scatter chart by specifying the x and y values
     # Use add_trace function to specify secondary_y axes.
     def create_figure (df_index, df,plot_title,y_title_1,y_title_2,df_columns,axis_list):
-        plot_color_list=['blue','red','green','orange']
+        plot_color_list=['black','blue','red','green','orange','yellow','brown','violet','turquoise','pink','olive','magenta','lightblue','purple']
         fig = make_subplots(specs=[[{"secondary_y": secondary_y_flag}]])
         for i,column in enumerate(df_columns):
             # print (df_index, df.loc[:,column])
@@ -65,9 +74,16 @@ def fig_generator(start_date,end_date,table,species_list,axis_list,plot_title,y_
         return fig
 
     fig=create_figure(output_df.index,output_df,plot_title,y_title_1,y_title_2,output_df.columns,axis_list)
+    conn.close()
     return fig
 
-def first_entry(table):
+def first_entry(table,database_name):
+    # set the sql engine string
+    sql_engine_string=sql_engine_string_generator('DATAHUB_PSQL_SERVER',database_name,'DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD')
+    sql_engine=create_engine(sql_engine_string)
+    conn = sql_engine.connect()
+
     first_entry_query=('SELECT datetime from {};').format(table)
     output = conn.execute(text(first_entry_query))
-    return output.fetchone()[0].strftime('%Y-%m-%d')
+    conn.close()
+    return output.fetchone()[0]
