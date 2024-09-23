@@ -51,8 +51,8 @@ def fig_generator(start_date,end_date,sql_query, database_name):
     def create_figure (df_index, df,plot_title,y_title_1,y_title_2,df_columns,axis_list,secondary_y_flag):
         print ('secondary y',secondary_y_flag)
         plot_color_list=['black','blue','red','green','orange','yellow','brown','violet','turquoise','pink','olive','magenta','lightblue','purple']
-        # fig = make_subplots(specs=[[{"secondary_y": True}]])
-        fig = make_subplots()
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        # fig = make_subplots()
         for i,column in enumerate(df_columns):
                 fig.add_trace(
                     go.Scatter(x=df_index, y=df[column], name=column, line_color=plot_color_list[i]))
