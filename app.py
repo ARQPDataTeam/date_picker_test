@@ -86,18 +86,17 @@ app.layout = html.Div(children=
                         max_date_allowed=end_date,
                         display_format='YYYY-MM-DD'
                     ),
-                    html.H2('Borden CSAT Display'),
-                    dcc.Graph(id='csat_plot',figure=fig_generator(start_date,end_date,'cr3000_temps','DATAHUB_BORDEN_DBNAME')),
+                    html.H2('Borden CR3000 Temperatures Display'),
+                    dcc.Graph(id='cr3000_plot',figure=fig_generator(start_date,end_date,'cr3000_temps','DATAHUB_BORDEN_DBNAME')),
                     html.Br(),
-                    html.H2(children=['Borden Picarro Display']),
-
-                    dcc.Graph(id='pic_plot',figure=fig_generator(start_date,end_date,'csat_temps','DATAHUB_BORDEN_DBNAME'))
+                    html.H2(children=['Borden CSAT Temperatures Display']),
+                    dcc.Graph(id='csat_plot',figure=fig_generator(start_date,end_date,'csat_temps','DATAHUB_BORDEN_DBNAME'))
                     ] 
                     )
 
 @app.callback(
+    Output('cr3000_plot', 'figure'),
     Output('csat_plot', 'figure'),
-    Output('pic_plot', 'figure'),
     Input('date-picker', 'start_date'),
     Input('date-picker', 'end_date'))
 
@@ -106,9 +105,9 @@ def update_output(start_date,end_date):
         raise PreventUpdate
     else:
         print ('Updating plot')
-        csat_fig=fig_generator(start_date,end_date,'cr3000_temps','DATAHUB_BORDEN_DBNAME')
-        pic_fig=fig_generator(start_date,end_date,'csat_temps','DATAHUB_BORDEN_DBNAME')
-    return csat_fig,pic_fig
+        cr3000_fig=fig_generator(start_date,end_date,'cr3000_temps','DATAHUB_BORDEN_DBNAME')
+        csat_fig=fig_generator(start_date,end_date,'csat_temps','DATAHUB_BORDEN_DBNAME')
+    return cr3000_fig,csat_fig
 
 if __name__=='__main__':
     app.run(debug=False, host='0.0.0.0', port=8080)
