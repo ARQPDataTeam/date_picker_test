@@ -108,8 +108,8 @@ def fig_generator(start_date,end_date,sql_query, database_name):
         #         x=0.01
         #     )   
         #     )
-            print ('returning fig')      
-            return fig
+        print ('returning fig')      
+        return fig
 
     fig=create_figure(output_df.index,output_df,plot_title,y_title_1,y_title_2,output_df.columns,axis_list,secondary_y_flag)
     conn.close()
