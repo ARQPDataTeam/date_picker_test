@@ -54,16 +54,16 @@ def fig_generator(start_date,end_date,sql_query, database_name):
         fig = make_subplots(specs=[[{"secondary_y": False}]])
         # fig = make_subplots()
         for i,column in enumerate(df_columns):
-                fig.add_trace(
-                    go.Scatter(x=df_index, y=df[column], name=column, line_color=plot_color_list[i]))
-        # print (df_index, df.loc[:,column])
-        if secondary_y_flag:
-            fig.add_trace(
-                go.Scatter(x=df_index, y=df[column], name=column, line_color=plot_color_list[i]),
-                secondary_y=axis_list[i])
-        else:
             fig.add_trace(
                 go.Scatter(x=df_index, y=df[column], name=column, line_color=plot_color_list[i]))
+        # # print (df_index, df.loc[:,column])
+        # if secondary_y_flag:
+        #     fig.add_trace(
+        #         go.Scatter(x=df_index, y=df[column], name=column, line_color=plot_color_list[i]),
+        #         secondary_y=axis_list[i])
+        # else:
+        #     fig.add_trace(
+        #         go.Scatter(x=df_index, y=df[column], name=column, line_color=plot_color_list[i]))
 
         fig.update_layout(
             template='simple_white',
