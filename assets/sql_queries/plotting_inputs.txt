@@ -1,4 +1,4 @@
 sql_query;axis_list;plot_title;y_title_1;secondary_y_flag;y_title_2
-cr3000_temps;[False,False,False,False,False,False,False,False,False,False,False,False];CR3000 Temperatures;Temperature (C);False;None
-csat_temps;[True, False, False];CSAT Virtual Temperature;Temperature (C);True;Virtual Temp (C)
- 
+plot_1;[False,False,False,False,False,False,False,False,False,False,False,False];CR3000 Temperatures;Temperature (C);False;None
+plot_2;[False, False, False];CSAT Virtual Temperature;Temperature (C);False;None
+plot_3;[False,False,False,False,False,True];Borden Gases;CO2 (ppm) OCS (ppt);True;CH4 (ppb)
