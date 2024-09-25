@@ -4,12 +4,46 @@ from sqlalchemy import create_engine
 from sqlalchemy import text
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import os
+from dotenv import load_dotenv
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
 
 from credentials import sql_engine_string_generator
 
 
 def fig_generator(start_date,end_date,sql_query, database_name):
-    print ('Querying ',sql_query)
+    # set a try except clause to grab the online credentials keys and if not, grab them locally as environment variables
+    try:
+        # set the key vault path
+        KEY_VAULT_URL = "https://fsdh-swapit-dw1-poc-kv.vault.azure.net/"
+        error_occur = False
+
+        # Retrieve the secrets containing DB connection details
+        credential = DefaultAzureCredential()
+        secret_client = SecretClient(vault_url=KEY_VAULT_URL, credential=credential)
+
+        # Retrieve the secrets containing DB connection details
+        DB_HOST = secret_client.get_secret("datahub-psql-server").value
+        DB_NAME = secret_client.get_secret("datahub-psql-dbname").value
+        DB_USER = secret_client.get_secret("datahub-psql-user").value
+        DB_PASS = secret_client.get_secret("datahub-psql-password").value
+        print ('Credentials loaded from FSDH')
+
+    except Exception as e:
+        # declare FSDH keys exception
+        error_occur = True
+        print(f"An error occurred: {e}")
+
+        # load the .env file using the dotenv module remove this when running a powershell script to confirue system environment vars
+        load_dotenv() # default is relative local directory 
+        env_path='.env'
+        DB_HOST = os.getenv('DATAHUB_PSQL_SERVER')
+        DB_NAME = os.getenv('DATAHUB_PSQL_DBNAME')
+        DB_USER = os.getenv('DATAHUB_PSQL_USER')
+        DB_PASS = os.getenv('DATAHUB_PSQL_PASSWORD')
+        print ('Credentials loaded locally')
+
     # set the sql engine string
     sql_engine_string=sql_engine_string_generator('DATAHUB_PSQL_SERVER',database_name,'DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD')
     sql_engine=create_engine(sql_engine_string)
@@ -25,8 +59,7 @@ def fig_generator(start_date,end_date,sql_query, database_name):
     y_title_2=plotting_properties_df.loc[sql_query,'y_title_2']
     axis_list=list(plotting_properties_df.loc[sql_query,'axis_list'])
     secondary_y_flag=plotting_properties_df.loc[sql_query,'secondary_y_flag']
-    print ('axis_list',axis_list)
-
+    
     # load the sql query
     filename=sql_query+'.sql'
     filepath=sql_path+filename
@@ -45,14 +78,10 @@ def fig_generator(start_date,end_date,sql_query, database_name):
     # plot a scatter chart by specifying the x and y values
     # Use add_trace function to specify secondary_y axes.
     def create_figure (df_index, df,plot_title,y_title_1,y_title_2,df_columns,axis_list,secondary_y_flag):
-        print ('secondary y',secondary_y_flag)
         plot_color_list=['black','blue','red','green','orange','yellow','brown','violet','turquoise','pink','olive','magenta','lightblue','purple']
         fig = make_subplots(specs=[[{"secondary_y": secondary_y_flag}]])
         # fig = make_subplots()
         for i,column in enumerate(df_columns):
-            fig.add_trace(
-                go.Scatter(x=df_index, y=df[column], name=column, line_color=plot_color_list[i]))
-            print (column, axis_list[i])
             if secondary_y_flag:
                 fig.add_trace(
                     go.Scatter(x=df_index, y=df[column], name=column, line_color=plot_color_list[i]),
@@ -61,21 +90,8 @@ def fig_generator(start_date,end_date,sql_query, database_name):
                 fig.add_trace(
                     go.Scatter(x=df_index, y=df[column], name=column, line_color=plot_color_list[i]))
 
-        # fig.update_layout(
-        #     template='seaborn',
-        #     title=plot_title,
-        #     xaxis_title="Date",
-        #     yaxis_title=y_title_1,
-        #     legend=dict(
-        #     yanchor="top",
-        #     y=0.99,
-        #     xanchor="left",
-        #     x=0.01
-        # )   
-        # )
  
         if secondary_y_flag: 
-            print ('second y')   
             # set axis titles
             fig.update_layout(
                 template='seaborn',
@@ -88,7 +104,6 @@ def fig_generator(start_date,end_date,sql_query, database_name):
                 )   
             )
         else:
-            print ('no second y')
             fig.update_layout(
                 template='seaborn',
                 title=plot_title,
@@ -98,7 +113,6 @@ def fig_generator(start_date,end_date,sql_query, database_name):
                 y=0.99
                 )   
             )
-        print ('returning fig')      
         return fig
 
     fig=create_figure(output_df.index,output_df,plot_title,y_title_1,y_title_2,output_df.columns,axis_list,secondary_y_flag)
