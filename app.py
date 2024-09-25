@@ -61,9 +61,9 @@ def update_output(start_date,end_date):
         raise PreventUpdate
     else:
         print ('Updating plot')
-        cr3000_fig=fig_generator(start_date,end_date,'plot_1','DATAHUB_BORDEN_DBNAME')
-        csat_fig=fig_generator(start_date,end_date,'plot_2','DATAHUB_BORDEN_DBNAME')
-    return cr3000_fig,csat_fig
+        plot_1_fig=fig_generator(start_date,end_date,'plot_1','DATAHUB_BORDEN_DBNAME')
+        plot_2_fig=fig_generator(start_date,end_date,'plot_2','DATAHUB_BORDEN_DBNAME')
+    return plot_1_fig,plot_2_fig
 
 if __name__=='__main__':
     app.run(debug=False, host='0.0.0.0', port=8080)
