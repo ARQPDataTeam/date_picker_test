@@ -122,6 +122,7 @@ def fig_generator(start_date,end_date,sql_query, database_name):
 def first_entry(table,database_name):
     # set the sql engine string
     sql_engine_string=sql_engine_string_generator('DATAHUB_PSQL_SERVER',database_name,'DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD')
+    print ('sql credentials', sql_engine_string)
     sql_engine=create_engine(sql_engine_string)
     conn = sql_engine.connect()
 
