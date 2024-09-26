@@ -1,73 +1,132 @@
 import pandas as pd
+from ast import literal_eval
 from sqlalchemy import create_engine
 from sqlalchemy import text
-from datetime import datetime as dt
-from datetime import timedelta as td
-from datetime import date
-from dotenv import load_dotenv
-import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import os
+from dotenv import load_dotenv
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
 
 from credentials import sql_engine_string_generator
 
-# set the sql engine string
-sql_engine_string=sql_engine_string_generator('DATAHUB_PSQL_SERVER','DATAHUB_BORDEN_DBNAME','DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD')
-sql_engine=create_engine(sql_engine_string)
-conn = sql_engine.connect()
 
-def fig_generator(start_date,end_date,table,species_list,axis_list,plot_title,y_title_1,secondary_y_flag,y_title_2=None):
-    print ('Plotting data')
-    not_null_select=species_list.split(',')[0]
-    # csat sql query
-    csat_sql_query=("""
-    SET TIME ZONE 'GMT';
-    SELECT DISTINCT ON (datetime) * FROM (
-        SELECT datetime, {}
-        FROM {}         
-        WHERE {} IS NOT NULL
-        AND datetime >= '{}' and datetime <='{}'
-    ) AS csat
-    ORDER BY datetime;
-    """).format(species_list,table,not_null_select,start_date,end_date)
+def fig_generator(start_date,end_date,sql_query, database_name):
+    # set a try except clause to grab the online credentials keys and if not, grab them locally as environment variables
+    try:
+        # set the key vault path
+        KEY_VAULT_URL = "https://fsdh-swapit-dw1-poc-kv.vault.azure.net/"
+        error_occur = False
+
+        # Retrieve the secrets containing DB connection details
+        credential = DefaultAzureCredential()
+        secret_client = SecretClient(vault_url=KEY_VAULT_URL, credential=credential)
+
+        # Retrieve the secrets containing DB connection details
+        DB_HOST = secret_client.get_secret("datahub-psql-server").value
+        DB_NAME = secret_client.get_secret("datahub-psql-dbname").value
+        DB_USER = secret_client.get_secret("datahub-psql-user").value
+        DB_PASS = secret_client.get_secret("datahub-psql-password").value
+        print ('Credentials loaded from FSDH')
+
+    except Exception as e:
+        # declare FSDH keys exception
+        error_occur = True
+        print(f"An error occurred: {e}")
+
+        # load the .env file using the dotenv module remove this when running a powershell script to confirue system environment vars
+        load_dotenv() # default is relative local directory 
+        env_path='.env'
+        DB_HOST = os.getenv('DATAHUB_PSQL_SERVER')
+        DB_NAME = os.getenv('DATAHUB_PSQL_DBNAME')
+        DB_USER = os.getenv('DATAHUB_PSQL_USER')
+        DB_PASS = os.getenv('DATAHUB_PSQL_PASSWORD')
+        print ('Credentials loaded locally')
+
+    # set the sql engine string
+    sql_engine_string=sql_engine_string_generator('DATAHUB_PSQL_SERVER',database_name,'DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD')
+    sql_engine=create_engine(sql_engine_string)
+    conn = sql_engine.connect()
+
+    # set the path to the sql folder
+    sql_path='assets/sql_queries/'
+
+    # load the plotting properties
+    plotting_properties_df=pd.read_csv(sql_path+'plotting_inputs.txt', index_col=0, sep=';', converters={"axis_list": literal_eval})
+    plot_title=plotting_properties_df.loc[sql_query,'plot_title']
+    y_title_1=plotting_properties_df.loc[sql_query,'y_title_1']
+    y_title_2=plotting_properties_df.loc[sql_query,'y_title_2']
+    axis_list=list(plotting_properties_df.loc[sql_query,'axis_list'])
+    secondary_y_flag=plotting_properties_df.loc[sql_query,'secondary_y_flag']
+    
+    # load the sql query
+    filename=sql_query+'.sql'
+    filepath=sql_path+filename
+    with open(filepath,'r') as f:
+        sql_query=f.read()
+
+    # sql query
+    sql_query=(sql_query).format(start_date,end_date)
 
     # create the dataframes from the sql query
-    output_df=pd.read_sql_query(csat_sql_query, con=sql_engine)
+    output_df=pd.read_sql_query(sql_query, con=sql_engine)
     # set a datetime index
     output_df.set_index('datetime', inplace=True)
     output_df.index=pd.to_datetime(output_df.index)
 
     # plot a scatter chart by specifying the x and y values
     # Use add_trace function to specify secondary_y axes.
-    def create_figure (df_index, df,plot_title,y_title_1,y_title_2,df_columns,axis_list):
-        plot_color_list=['blue','red','green','orange']
+    def create_figure (df_index, df,plot_title,y_title_1,y_title_2,df_columns,axis_list,secondary_y_flag):
+        plot_color_list=['black','blue','red','green','orange','yellow','brown','violet','turquoise','pink','olive','magenta','lightblue','purple']
         fig = make_subplots(specs=[[{"secondary_y": secondary_y_flag}]])
+        # fig = make_subplots()
         for i,column in enumerate(df_columns):
-            # print (df_index, df.loc[:,column])
-            fig.add_trace(
-                go.Scatter(x=df_index, y=df[column], name=column, line_color=plot_color_list[i]),
-                secondary_y=axis_list[i])
-        
-        # set axis titles
-        fig.update_layout(
-            template='simple_white',
-            title=plot_title,
-            xaxis_title="Date",
-            yaxis_title=y_title_1,
-            yaxis2_title=y_title_2,
-            legend=dict(
-            yanchor="top",
-            y=0.99,
-            xanchor="left",
-            x=0.01
-        )   
-        )
+            if secondary_y_flag:
+                fig.add_trace(
+                    go.Scatter(x=df_index, y=df[column], name=column, line_color=plot_color_list[i]),
+                    secondary_y=axis_list[i])
+            else:
+                fig.add_trace(
+                    go.Scatter(x=df_index, y=df[column], name=column, line_color=plot_color_list[i]))
+
+ 
+        if secondary_y_flag: 
+            # set axis titles
+            fig.update_layout(
+                template='seaborn',
+                title=plot_title,
+                xaxis_title="Date",
+                yaxis_title=y_title_1,
+                yaxis2_title=y_title_2,
+                legend=dict(
+                y=0.99
+                )   
+            )
+        else:
+            fig.update_layout(
+                template='seaborn',
+                title=plot_title,
+                xaxis_title="Date",
+                yaxis_title=y_title_1,
+                legend=dict(
+                y=0.99
+                )   
+            )
         return fig
 
-    fig=create_figure(output_df.index,output_df,plot_title,y_title_1,y_title_2,output_df.columns,axis_list)
+    fig=create_figure(output_df.index,output_df,plot_title,y_title_1,y_title_2,output_df.columns,axis_list,secondary_y_flag)
+    conn.close()
     return fig
 
-def first_entry(table):
+def first_entry(table,database_name):
+    # set the sql engine string
+    sql_engine_string=sql_engine_string_generator('DATAHUB_PSQL_SERVER',database_name,'DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD')
+    print ('sql credentials', sql_engine_string)
+    sql_engine=create_engine(sql_engine_string)
+    conn = sql_engine.connect()
+
     first_entry_query=('SELECT datetime from {};').format(table)
     output = conn.execute(text(first_entry_query))
-    return output.fetchone()[0].strftime('%Y-%m-%d')
+    conn.close()
+    return output.fetchone()[0]
