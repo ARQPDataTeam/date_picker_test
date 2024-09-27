@@ -12,8 +12,8 @@ from postgres_query import first_entry
 
 # initialize the dash app as 'app'
 app = Dash(__name__,    
-    requests_pathname_prefix="/webapp-SWAPIT/",
-    routes_pathname_prefix="/webapp-SWAPIT/"
+    requests_pathname_prefix="/app/SWAPIT/",
+    routes_pathname_prefix="/app/SWAPIT/"
 )
 
 # set datetime parameters
