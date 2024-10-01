@@ -44,7 +44,7 @@ def sql_engine_string_generator(datahub_host, datahub_db, datahub_user, datahub_
 
     # set the sql engine string
     sql_engine_string=('postgresql://{}:{}@{}/{}?sslmode=require').format(DB_USER,DB_PASS,DB_HOST,DB_NAME)
-    # print ('sql engine string: ',sql_engine_string)
+    print ('sql engine string: ',sql_engine_string)
     return sql_engine_string
 
 
