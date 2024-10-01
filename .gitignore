@@ -2,5 +2,5 @@
 .venv
 *.pyc
 *.pyo
-__pycache__/*
+./__pycache__/*
 launch.json
