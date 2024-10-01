@@ -43,6 +43,9 @@ Write-Output "Retrieving secrets from Key Vault: $KeyVaultName"
 $DB_HOST = Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name "datahub-psql-server" -AsPlainText
 $DB_USER = Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name "datahub-psql-admin" -AsPlainText
 $DB_PASS = Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name "datahub-psql-password" -AsPlainText
+$BORDEN_DBNAME = Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name "datahub-borden-databse" -AsPlainText
+$SWAPIT_DBNAME = Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name "datahub-swapit-databse" -AsPlainText
+$DCP_DBNAME = Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name "datahub-dcp-databse" -AsPlainText
 #Register-SecretVault -Name MyVault -ModuleName Microsoft.PowerShell.SecretStore -DefaultVault
 
 # Output the secrets (optional, for verification)
@@ -52,3 +55,9 @@ Write-Output "Saving DB_USER: $DB_USER to Powershell Vault"
 Set-Secret -Name DB_USER -Secret $DB_USER -Vault $localVault
 Write-Output "Saving DB_PASS: $DB_PASS to Powershell Vault"
 Set-Secret -Name DB_PASS -Secret $DB_PASS -Vault $localVault
+Write-Output "Saving BORDEN_DBNAME: $BORDEN_DBNAME to Powershell Vault"
+Set-Secret -Name BORDEN_DBNAME -Secret $BORDEN_DBNAME -Vault $localVault
+Write-Output "Saving SWAPIT_DBNAME: $SWAPIT_DBNAME to Powershell Vault"
+Set-Secret -Name SWAPIT_DBNAME -Secret $SWAPIT_DBNAME -Vault $localVault
+Write-Output "Saving DCP_DBNAME: $DCP_DBNAME to Powershell Vault"
+Set-Secret -Name DCP_DBNAME -Secret $DCP_DBNAME -Vault $localVault

@@ -23,13 +23,16 @@ Connect-AzAccount -Tenant $env:AzureTenantId
 # Get-AzSubscription -SubscriptionName "Your Subscription Name" | Set-AzContext
 
 # Define Key Vault URL or name
-$KeyVaultName = "fsdh-proj-dw1-poc-kv"
+$KeyVaultName = "fsdh-proj-swapit-poc-kv"
 
 Write-Output "Retrieving secrets from Key Vault: $KeyVaultName"
 # Retrieve secrets from Key Vault
 $DB_HOST = Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name "datahub-psql-server" -AsPlainText
 $DB_USER = Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name "datahub-psql-admin" -AsPlainText
 $DB_PASS = Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name "datahub-psql-password" -AsPlainText
+$BORDEN_DBNAME = Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name "datahub-borden-databse" -AsPlainText
+$SWAPIT_DBNAME = Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name "datahub-swapit-databse" -AsPlainText
+$DCP_DBNAME = Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name "datahub-dcp-databse" -AsPlainText
 
 # Output the secrets (optional, for verification)
 # load launch.json
@@ -39,4 +42,8 @@ $launch = Get-Content -Path ".vscode/launch-tpl.json" -Raw | ConvertFrom-Json
 $launch.configurations[0].env.DATAHUB_PSQL_SERVER = $DB_HOST
 $launch.configurations[0].env.DATAHUB_PSQL_USER = $DB_USER
 $launch.configurations[0].env.DATAHUB_PSQL_PASSWORD = $DB_PASS
+$launch.configurations[0].env.DATAHUB_BORDEN_DBNAME = $BORDEN_DBNAME
+$launch.configurations[0].env.DATAHUB_DCP_DBNAME = $SWAPIT_DBNAME
+$launch.configurations[0].env.DATAHUB_SWAPIT_DBNAME = $DCP_DBNAME
+
 $launch | ConvertTo-Json -Depth 100 | Set-Content -Path ".vscode/launch.json"
