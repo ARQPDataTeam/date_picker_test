@@ -53,6 +53,7 @@ app.layout = html.Div(children=
                     ] 
                     )
 
+print ('plot generated')
 @app.callback(
     Output('plot_1', 'figure'),
     Output('plot_2', 'figure'),
