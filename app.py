@@ -70,4 +70,4 @@ def update_output(start_date,end_date):
     return plot_1_fig,plot_2_fig
 
 if __name__=='__main__':
-    app.run(debug=False, port=8080) # ctrl click the http://127.0.0.1:8080 link to get the app to work
+    app.run(debug=False, host='0.0.0.0', port=8080) # ctrl click the http://127.0.0.1:8080 link to get the app to work
