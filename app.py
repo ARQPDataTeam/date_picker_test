@@ -7,14 +7,16 @@ from dash.dependencies import Input, Output
 
 # local modules
 from postgres_query import fig_generator
-from postgres_query import first_entry
-
+from credentials import sql_engine_string_generator
 
 # initialize the dash app as 'app'
 app = Dash(__name__,    
     requests_pathname_prefix="/app/SWAPIT/",
     routes_pathname_prefix="/app/SWAPIT/"
 )
+
+# generate the sql connection string
+sql_engine_string=sql_engine_string_generator('DATAHUB_PSQL_SERVER','DATAHUB_BORDEN_DBNAME','DATAHUB_PSQL_USER','DATAHUB_PSQL_PASSWORD')
 
 # set datetime parameters
 now=dt.today()
@@ -46,10 +48,10 @@ app.layout = html.Div(children=
                         display_format='YYYY-MM-DD'
                     ),
                     html.H2('Borden CR3000 Temperatures Display'),
-                    dcc.Graph(id='plot_1',figure=fig_generator(start_date,end_date,'plot_1','DATAHUB_BORDEN_DBNAME')),
+                    dcc.Graph(id='plot_1',figure=fig_generator(start_date,end_date,'plot_1',sql_engine_string)),
                     html.Br(),
                     html.H2(children=['Borden CSAT Temperatures Display']),
-                    dcc.Graph(id='plot_2',figure=fig_generator(start_date,end_date,'plot_2','DATAHUB_BORDEN_DBNAME'))
+                    dcc.Graph(id='plot_2',figure=fig_generator(start_date,end_date,'plot_2',sql_engine_string))
                     ] 
                     )
 
@@ -65,8 +67,8 @@ def update_output(start_date,end_date):
         raise PreventUpdate
     else:
         print ('Updating plot')
-        plot_1_fig=fig_generator(start_date,end_date,'plot_1','DATAHUB_BORDEN_DBNAME')
-        plot_2_fig=fig_generator(start_date,end_date,'plot_2','DATAHUB_BORDEN_DBNAME')
+        plot_1_fig=fig_generator(start_date,end_date,'plot_1',sql_engine_string)
+        plot_2_fig=fig_generator(start_date,end_date,'plot_2',sql_engine_string)
     return plot_1_fig,plot_2_fig
 
 if __name__=='__main__':
