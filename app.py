@@ -71,5 +71,6 @@ def update_output(start_date,end_date):
         plot_2_fig=fig_generator(start_date,end_date,'plot_2',sql_engine_string)
     return plot_1_fig,plot_2_fig
 
-if __name__=='__main__':
-    app.run(debug=False, host='0.0.0.0', port=8080) # ctrl click the http://127.0.0.1:8080 link to get the app to work
+server = app.server 
+# if __name__=='__main__':
+#     app.run(debug=False, host='0.0.0.0', port=8080) # ctrl click the http://127.0.0.1:8080 link to get the app to work

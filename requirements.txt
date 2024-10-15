@@ -11,3 +11,4 @@ azure-storage-blob
 azure-keyvault-secrets
 python-dotenv
 dash_leaflet
+gunicorn
