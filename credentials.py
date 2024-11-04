@@ -42,8 +42,3 @@ def sql_engine_string_generator(datahub_host, datahub_db, datahub_user, datahub_
     return sql_engine_string
 
 
-
-
-
-if __name__=='__main__':
-    app.run(debug=True)
